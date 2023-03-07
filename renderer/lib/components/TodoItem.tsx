@@ -11,7 +11,7 @@ type TodoItemProps = {
 export default function TodoItem(props: TodoItemProps) {
   return (
     <React.Fragment>
-      <div className="px-5">
+      <div className="px-5 hover:cursor-pointer">
         <div className="flex items-center gap-5">
           <div className="h-6 w-6 border rounded-full p-1">
             {props.completed ? (

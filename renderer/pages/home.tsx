@@ -1,7 +1,7 @@
 import Head from "next/head";
 import React, { useState } from "react";
-import TodoScreen from "../lib/components/screens/TodoScreen";
 import NotificationsScreen from "../lib/components/screens/NotificationsScreen";
+import TodoScreen from "../lib/components/screens/TodoScreen";
 
 function Home() {
   const [todosClicked, setTodosClicked] = useState(true);
@@ -19,8 +19,8 @@ function Home() {
         <title>Home - Nextron (with-typescript-tailwindcss)</title>
       </Head>
 
-      <div className="font-golos">
-        <div className="flex gap-10 relative text-gray-500 py-5 text-xl">
+      <div className="font-golos flex flex-col relative">
+        <div className="flex w-full gap-10 text-gray-500 py-5 text-xl">
           <div className="absolute border-gray-100 border w-full top-[4.25rem]" />
           <div
             onClick={() => handleTodosClick()}
@@ -46,6 +46,7 @@ function Home() {
             )}
           </div>
         </div>
+
         {todosClicked ? <TodoScreen /> : <NotificationsScreen />}
       </div>
     </React.Fragment>
