@@ -61,9 +61,9 @@ if (isProd) {
   // when click on quit in tray menu
 
   // hide window when app loses focus
-  mainWindow.on("blur", () => {
-    mainWindow.hide();
-  });
+  // mainWindow.on("blur", () => {
+  //   mainWindow.hide();
+  // });
 
   if (isProd) {
     await mainWindow.loadURL("app://./home.html");

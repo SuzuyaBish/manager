@@ -22,6 +22,9 @@ export default function TodoScreen() {
   const [newNote, setNewNote] = useState(false);
   const [openAssignment, setOpenAssignment] = useState(false);
 
+  const [searchShown, setSearchShown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     loadTodos();
     console.log("Called");
@@ -186,8 +189,7 @@ export default function TodoScreen() {
   const handleSetAssignment = (name: string) => {
     setAssignedTo(name);
     setOpenAssignment(false);
-  }
-
+  };
 
   if (loading) {
     return (
@@ -311,7 +313,11 @@ export default function TodoScreen() {
                         </div>
                       ) : null}
                       <div
-                        onClick={() => openAssignment ? setOpenAssignment(false) : setOpenAssignment(true)}
+                        onClick={() =>
+                          openAssignment
+                            ? setOpenAssignment(false)
+                            : setOpenAssignment(true)
+                        }
                         className="flex hover:cursor-pointer items-center gap-2"
                       >
                         <img
@@ -349,6 +355,19 @@ export default function TodoScreen() {
           </Sheet.Container>
           <Sheet.Backdrop />
         </Sheet>
+
+        {searchShown ? (
+          <>
+            <input
+              autoFocus
+              placeholder="Search term here..."
+              className="w-full placeholder:text-xl text-xl pl-7 text-gray-500 focus:border-none focus:outline-none mt-0"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <div className="border border-gray-100 my-4 mx-7" />
+          </>
+        ) : null}
         {todos.map(function (item, index) {
           return (
             <div key={index} className="relative">
@@ -385,6 +404,21 @@ export default function TodoScreen() {
           className="absolute top-5 right-5 hover:cursor-pointer"
         >
           <img src="/images/newNoteIcon.png" alt="" className="h-7 w-7" />
+        </div>
+        <div className="fixed flex flex-col items-center right-0 top-52 gap-6 bg-gray-50 p-2 rounded-tl-lg rounded-bl-lg">
+          <div
+            onClick={() => setSearchShown(!searchShown)}
+            className="hover:cursor-pointer"
+          >
+            <img src="/images/searchIcon.png" alt="" className="h-7 w-7" />
+          </div>
+
+          <div
+            onClick={() => handleNewNoteOpen()}
+            className="hover:cursor-pointer"
+          >
+            <img src="/images/filterIcon.png" alt="" className="h-7 w-7" />
+          </div>
         </div>
       </React.Fragment>
     );
