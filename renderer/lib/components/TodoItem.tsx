@@ -6,6 +6,7 @@ type TodoItemProps = {
   dueDate: string;
   assignedTo: string;
   completed: boolean;
+  overdueOrClose: boolean;  
 };
 
 export default function TodoItem(props: TodoItemProps) {
@@ -24,7 +25,7 @@ export default function TodoItem(props: TodoItemProps) {
                 alt=""
                 className="h-4 w-4"
               />
-              <div className="text-greyText">{props.dueDate}</div>
+              <div className={`${props.overdueOrClose ? "text-red-500" : "text-greyText"}`}>{props.dueDate}</div>
             </div>
             <div className="rounded-full h-1 w-1 bg-gray-300" />
             <div className="flex items-center gap-1">

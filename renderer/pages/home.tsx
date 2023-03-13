@@ -9,6 +9,10 @@ function Home() {
   const [notificationsClicked, setNotificationsClicked] = useState(false);
   const [groceriesClicked, setGroceriesClicked] = useState(false);
 
+  const Store = require("electron-store");
+
+  const store = new Store();
+
   const handleClicked = (index: number) => {
     if (index === 0) {
       setTodosClicked(true);
@@ -36,7 +40,7 @@ function Home() {
       return <NotificationsScreen />;
     }
   };
-
+    
   return (
     <React.Fragment>
       <div className="font-golos flex flex-col relative">

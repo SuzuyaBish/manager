@@ -48,7 +48,7 @@ export default function TodoScreen() {
         .from("Todos")
         .select()
         .order("completed", { ascending: true })
-        .order("due_date", { ascending: false });
+        .order("due_date", { ascending: true });
 
       if (data) {
         setTodos(data);
@@ -105,6 +105,8 @@ export default function TodoScreen() {
     setOpenAssignment(false);
     setNewNote(false);
     setAssignedTo("");
+    setDescription("");
+    setTitle("");
   };
 
   const editTask = async () => {
@@ -189,6 +191,25 @@ export default function TodoScreen() {
   const handleSetAssignment = (name: string) => {
     setAssignedTo(name);
     setOpenAssignment(false);
+  };
+
+  const checkIfOverdueOrClose = (date: string) => {
+    const dateArray = date.split("-");
+    const month = dateArray[1];
+    const day = dateArray[2];
+    const year = dateArray[0];
+
+    const currentDate = new Date();
+    const dueDate = new Date(`${month}/${day}/${year}`);
+
+    const diffTime = Math.abs(dueDate.getTime() - currentDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 3) {
+      return true;
+    } else {
+      return false;
+    }
   };
 
   if (loading) {
@@ -368,7 +389,7 @@ export default function TodoScreen() {
             <div className="border border-gray-100 my-4 mx-7" />
           </>
         ) : null}
-        {todos.map(function (item, index) {
+        {/* {todos.map(function (item, index) {
           return (
             <div key={index} className="relative">
               <div
@@ -398,14 +419,74 @@ export default function TodoScreen() {
               </div>
             </div>
           );
-        })}
+        })} */}
+        {todos.filter((todo) => {
+          if (searchTerm == "") {
+            return todo;
+          } else if (
+            todo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            todo.assigned_to.toLowerCase().includes(searchTerm.toLowerCase())
+          ) {
+            return todo;
+          }
+        }).length == 0 ? (
+          <div className="text-center text-gray-500 text-xl absolute top-[250px] left-[330px]">
+            No tasks found
+          </div>
+        ) : (
+          todos
+            .filter((todo) => {
+              if (searchTerm == "") {
+                return todo;
+              } else if (
+                todo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                todo.assigned_to
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase())
+              ) {
+                return todo;
+              }
+            })
+            .map(function (item, index) {
+              return (
+                <div key={index} className="relative">
+                  <div
+                    onClick={() => setCompleted(index)}
+                    className="h-6 hover:cursor-pointer top-7 left-7 absolute w-6 border rounded-full p-1"
+                  >
+                    {todos[index].completed ? (
+                      <img
+                        src="../images/checkIcon.png"
+                        alt=""
+                        className="h-full w-full"
+                      />
+                    ) : (
+                      <div className="h-full w-full" />
+                    )}
+                  </div>
+                  <div onClick={() => (isOpen ? null : handleOpenTodo(index))}>
+                    <TodoItem
+                      key={index}
+                      title={item.title}
+                      description={item.description}
+                      completed={item.completed}
+                      assignedTo={item.assigned_to}
+                      dueDate={formatDate(item.due_date)}
+                      overdueOrClose={checkIfOverdueOrClose(item.due_date)}
+                    />
+                    <div className="border border-gray-100 my-4 mx-6" />
+                  </div>
+                </div>
+              );
+            })
+        )}
         <div
           onClick={() => handleNewNoteOpen()}
           className="absolute top-5 right-5 hover:cursor-pointer"
         >
           <img src="/images/newNoteIcon.png" alt="" className="h-7 w-7" />
         </div>
-        <div className="fixed flex flex-col items-center right-0 top-52 gap-6 bg-gray-50 p-2 rounded-tl-lg rounded-bl-lg">
+        <div className="fixed flex flex-col items-center right-0 top-52 gap-6 bg-gray-100 p-2 rounded-tl-lg rounded-bl-lg">
           <div
             onClick={() => setSearchShown(!searchShown)}
             className="hover:cursor-pointer"
