@@ -25,20 +25,14 @@ export default function TodoScreen() {
   const [searchShown, setSearchShown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const Store = require("electron-store");
+  const store = new Store();
+
+  const currentUser = store.get("user");
+
   useEffect(() => {
     loadTodos();
     console.log("Called");
-    supabase
-      .channel("any")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "Todos" },
-        (payload) => {
-          console.log("Received realtime payload:", payload);
-          loadTodos();
-        }
-      )
-      .subscribe();
   }, []);
 
   const loadTodos = async () => {
@@ -62,6 +56,7 @@ export default function TodoScreen() {
       setLoading(false);
     }
   };
+
 
   const formatDate = (date: string) => {
     const dateArray = date.split("-");
@@ -154,8 +149,8 @@ export default function TodoScreen() {
       setTodoLoading(true);
       const { data, error } = await supabase.from("Todos").insert([
         {
-          title,
-          description,
+          title: title == "" ? "No title" : title,
+          description: description == "" ? "No description" : description,
           due_date: `${dueDateYear}-${dueDateMonth}-${dueDateDay}`,
           assigned_to: assignedTo == "" ? "No one" : assignedTo,
           completed: false,
@@ -210,6 +205,18 @@ export default function TodoScreen() {
     } else {
       return false;
     }
+  };
+
+  const getIncompleteTasks = () => {
+    // check if the task is incomplete and assigned_to is current user
+    // return the count
+    let count = 0;
+    todos.forEach((todo) => {
+      if (!todo.completed && todo.assigned_to == currentUser) {
+        count++;
+      }
+    });
+    return count;
   };
 
   if (loading) {
@@ -389,37 +396,6 @@ export default function TodoScreen() {
             <div className="border border-gray-100 my-4 mx-7" />
           </>
         ) : null}
-        {/* {todos.map(function (item, index) {
-          return (
-            <div key={index} className="relative">
-              <div
-                onClick={() => setCompleted(index)}
-                className="h-6 hover:cursor-pointer top-7 left-7 absolute w-6 border rounded-full p-1"
-              >
-                {todos[index].completed ? (
-                  <img
-                    src="../images/checkIcon.png"
-                    alt=""
-                    className="h-full w-full"
-                  />
-                ) : (
-                  <div className="h-full w-full" />
-                )}
-              </div>
-              <div onClick={() => (isOpen ? null : handleOpenTodo(index))}>
-                <TodoItem
-                  key={index}
-                  title={item.title}
-                  description={item.description}
-                  completed={item.completed}
-                  assignedTo={item.assigned_to}
-                  dueDate={formatDate(item.due_date)}
-                />
-                <div className="border border-gray-100 my-4 mx-6" />
-              </div>
-            </div>
-          );
-        })} */}
         {todos.filter((todo) => {
           if (searchTerm == "") {
             return todo;
@@ -480,6 +456,11 @@ export default function TodoScreen() {
               );
             })
         )}
+        {getIncompleteTasks() == 0 ? null : (
+          <div className="absolute top-3.5 right-20 bg-gray-100 rounded-md p-2 hover:cursor-pointer">
+            <div>Outstanding: {getIncompleteTasks()}</div>
+          </div>
+        )}
         <div
           onClick={() => handleNewNoteOpen()}
           className="absolute top-5 right-5 hover:cursor-pointer"
@@ -495,7 +476,7 @@ export default function TodoScreen() {
           </div>
 
           <div
-            onClick={() => handleNewNoteOpen()}
+            onClick={() => showNotification()}
             className="hover:cursor-pointer"
           >
             <img src="/images/filterIcon.png" alt="" className="h-7 w-7" />

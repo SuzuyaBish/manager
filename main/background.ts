@@ -1,8 +1,15 @@
-import { Menu, Tray, app, globalShortcut, nativeImage } from "electron";
+import { Menu, Tray, app, globalShortcut, nativeImage, Notification, ipcMain } from "electron";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
+
+export const Notify = (title: string, body: string) => {
+  new Notification({
+    title: title,
+    body: body
+  }).show()
+}
 
 if (isProd) {
   serve({ directory: "app" });
@@ -52,6 +59,14 @@ if (isProd) {
     height: 500,
     frame: false,
   });
+
+  ipcMain.handle("notify", async (event, title, body) => {
+    new Notification({
+      title: title,
+      body: body
+    }).show()
+  })
+
 
   mainWindow.center();
 

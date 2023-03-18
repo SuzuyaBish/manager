@@ -1,3 +1,4 @@
+import { ipcRenderer } from "electron";
 import React, { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import supabase from "../lib/api/supabase_client";
@@ -25,10 +26,61 @@ function Home() {
         store.set("user", "Jay");
       }
     }
+
+    if (store.get("newData") == undefined || null) {
+      store.set("newData", false);
+    }
+
+    supabase
+      .channel("any")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Todos" },
+        (payload) => {
+          console.log("Received realtime payload:", payload);
+
+          if (
+            payload.new["assigned_to"] != store.get("user") &&
+            payload.new["completed"] == true
+          ) {
+            notify("Task completion", "A task you assigned was completed.");
+            store.set("newData", true);
+          }
+          if (
+            payload.new["assigned_to"] == store.get("user") &&
+            payload.eventType == "INSERT"
+          ) {
+            notify(
+              "You have a new task",
+              "A new task has been assigned to you."
+            );
+
+            store.set("newData", true);
+          }
+          if (
+            payload.new["assigned_to"] == store.get("user") &&
+            payload.eventType == "UPDATE"
+          ) {
+            notify(
+              "Task update",
+              "A task assigned to you was " +
+                payload.eventType.toLowerCase() +
+                "d."
+            );
+
+            store.set("newData", true);
+          }
+        }
+      )
+      .subscribe();
     // store.delete("user")
   }, []);
 
   console.log(store.get("user"));
+
+  const notify = (title: string, body: string) => {
+    ipcRenderer.invoke("notify", title, body);
+  };
 
   const getUser = async () => {
     try {
