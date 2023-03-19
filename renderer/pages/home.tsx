@@ -20,6 +20,17 @@ function Home() {
   const store = new Store();
 
   useEffect(() => {
+    ipcRenderer.on("update_available", () => {
+      ipcRenderer.removeAllListeners("update_available");
+      alert("A new update is available. Downloading now...");
+    });
+
+    ipcRenderer.on("update_downloaded", () => {
+      ipcRenderer.removeAllListeners("update_downloaded");
+      alert("Update Downloaded. It will be installed on restart. Restart now?");
+      ipcRenderer.invoke("restart_app");
+    });
+
     loadTodos();
     if (store.get("user") == undefined || null) {
       getUser();
@@ -81,7 +92,6 @@ function Home() {
       .subscribe();
     // store.delete("user")
   }, []);
-
 
   const loadTodos = async () => {
     try {
@@ -213,7 +223,7 @@ function Home() {
               )}
             </div>
 
-            <div
+            {/* <div
               onClick={() => handleClicked(2)}
               className="flex flex-col hover:cursor-pointer"
             >
@@ -223,13 +233,10 @@ function Home() {
               ) : (
                 <div></div>
               )}
-            </div>
+            </div> */}
           </div>
 
-<div className="mt-[5.5rem]">
-
-          {whichPage()}
-</div>
+          <div className="mt-[5.5rem]">{whichPage()}</div>
         </div>
       </React.Fragment>
     );
