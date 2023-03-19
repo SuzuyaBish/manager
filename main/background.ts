@@ -1,15 +1,29 @@
-import { Menu, Tray, app, globalShortcut, nativeImage, Notification, ipcMain } from "electron";
+import {
+  Menu,
+  Notification,
+  Tray,
+  app,
+  globalShortcut,
+  ipcMain,
+  nativeImage,
+} from "electron";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
 
 const isProd: boolean = process.env.NODE_ENV === "production";
 
+require('update-electron-app')({
+  repo: 'SuzuyaBish/manager',
+  updateInterval: '1 hour',
+  logger: require('electron-log')
+})
+
 export const Notify = (title: string, body: string) => {
   new Notification({
     title: title,
-    body: body
-  }).show()
-}
+    body: body,
+  }).show();
+};
 
 if (isProd) {
   serve({ directory: "app" });
@@ -63,10 +77,9 @@ if (isProd) {
   ipcMain.handle("notify", async (event, title, body) => {
     new Notification({
       title: title,
-      body: body
-    }).show()
-  })
-
+      body: body,
+    }).show();
+  });
 
   mainWindow.center();
 

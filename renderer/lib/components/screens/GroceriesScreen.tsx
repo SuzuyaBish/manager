@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { MoonLoader } from "react-spinners";
 import supabase from "../../api/supabase_client";
-import GrocerieItem from "../GrocerieItem";
+import { ipcRenderer } from "electron";
 
 export default function GroceriesScreen() {
   const [list, setList] = useState([]);
+  const [checkedIndex, setCheckedIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadTodos();
   }, []);
+
+  const notify = (title: string, body: string) => {
+    ipcRenderer.invoke("notify", title, body);
+  };
 
   const loadTodos = async () => {
     try {
@@ -57,6 +62,24 @@ export default function GroceriesScreen() {
     }
   };
 
+  const handleSetComplete = async (index) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("Groceries")
+        .update({ completed: !list[index].completed })
+        .eq("title", list[index].title);
+
+      if (error) throw error;
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    } finally {
+      loadTodos();
+    }
+  };
+
   const handleInsertGroceries = async () => {
     try {
       setLoading(true);
@@ -84,6 +107,7 @@ export default function GroceriesScreen() {
     } finally {
       setLoading(false);
       loadTodos();
+      notify("Groceries", "New groceries added to list!")
     }
   };
 
@@ -106,32 +130,29 @@ export default function GroceriesScreen() {
         />
 
         <div className="border border-gray-100 my-4 mx-0" />
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col gap-3">
           {list.map((item, index) => {
             return (
-              <div key={index} className="relative">
-                <div>
-                  <GrocerieItem title={item.title}>
-                    <div
-                      onClick={() => handleDeleteItem(index)}
-                      className="hover:cursor-pointer"
-                    >
-                      <img
-                        src="../images/trashIcon.png"
-                        alt=""
-                        className="h-7 w-7"
-                      />
-                    </div>
-                  </GrocerieItem>
-                  <div className="border border-gray-100 my-4 mx-0" />
+              <div key={index} className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  name=""
+                  id=""
+                  checked={item.completed}
+                  onChange={() => handleSetComplete(index)}
+                  className="h-6 w-6 hover:cursor-pointer rounded-full border-gray-400 border-2 checked:bg-purpleAccent checked:border-transparent focus:outline-none"
+                />
+                <div className={`${item.completed ? "line-through" : ""}`}>
+                  {item.title}
                 </div>
               </div>
             );
           })}
         </div>
+        <div className="mb-5"></div>
         <div
           onClick={() => handleInsertGroceries()}
-          className="absolute top-5 right-5 hover:cursor-pointer"
+          className="absolute z-20 top-5 right-5 hover:cursor-pointer"
         >
           <img src="/images/uploadIcon.png" alt="" className="h-7 w-7" />
         </div>

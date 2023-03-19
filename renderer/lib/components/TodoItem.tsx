@@ -6,13 +6,18 @@ type TodoItemProps = {
   dueDate: string;
   assignedTo: string;
   completed: boolean;
-  overdueOrClose: boolean;  
+  overdueOrClose: boolean;
+  active: boolean;
 };
 
 export default function TodoItem(props: TodoItemProps) {
   return (
     <React.Fragment>
-      <div className="mx-20 hover:cursor-pointer">
+      <div
+        className={`${
+          props.active ? "bg-gray-100" : null
+        } mx-20 hover:cursor-pointer rounded-xl p-2`}
+      >
         <div className="pr-10">
           <div>{props.title}</div>
           <div className="truncate text-ellipsis overflow-hidden max-w-lg text-greyText">
@@ -25,7 +30,13 @@ export default function TodoItem(props: TodoItemProps) {
                 alt=""
                 className="h-4 w-4"
               />
-              <div className={`${props.overdueOrClose ? "text-red-500" : "text-greyText"}`}>{props.dueDate}</div>
+              <div
+                className={`${
+                  props.overdueOrClose ? "text-red-500" : "text-greyText"
+                }`}
+              >
+                {props.dueDate}
+              </div>
             </div>
             <div className="rounded-full h-1 w-1 bg-gray-300" />
             <div className="flex items-center gap-1">
@@ -35,7 +46,6 @@ export default function TodoItem(props: TodoItemProps) {
           </div>
         </div>
       </div>
-
     </React.Fragment>
   );
 }

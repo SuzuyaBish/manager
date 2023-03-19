@@ -13,10 +13,14 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
 
+  const [todos, setTodos] = useState<any[]>([]);
+  const [todosLoading, setTodosLoading] = useState(false);
+
   const Store = require("electron-store");
   const store = new Store();
 
   useEffect(() => {
+    loadTodos();
     if (store.get("user") == undefined || null) {
       getUser();
 
@@ -39,6 +43,8 @@ function Home() {
         (payload) => {
           console.log("Received realtime payload:", payload);
 
+          loadTodos();
+
           if (
             payload.new["assigned_to"] != store.get("user") &&
             payload.new["completed"] == true
@@ -57,26 +63,47 @@ function Home() {
 
             store.set("newData", true);
           }
-          if (
-            payload.new["assigned_to"] == store.get("user") &&
-            payload.eventType == "UPDATE"
-          ) {
-            notify(
-              "Task update",
-              "A task assigned to you was " +
-                payload.eventType.toLowerCase() +
-                "d."
-            );
+          // if (
+          //   payload.new["assigned_to"] == store.get("user") &&
+          //   payload.eventType == "UPDATE"
+          // ) {
+          //   notify(
+          //     "Task update",
+          //     "A task assigned to you was " +
+          //       payload.eventType.toLowerCase() +
+          //       "d."
+          //   );
 
-            store.set("newData", true);
-          }
+          //   store.set("newData", true);
+          // }
         }
       )
       .subscribe();
     // store.delete("user")
   }, []);
 
-  console.log(store.get("user"));
+
+  const loadTodos = async () => {
+    try {
+      setTodosLoading(true);
+      const { data, error } = await supabase
+        .from("Todos")
+        .select()
+        .order("completed", { ascending: true })
+        .order("due_date", { ascending: true });
+
+      if (data) {
+        setTodos(data);
+      }
+      if (error) throw error;
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    } finally {
+      setTodosLoading(false);
+    }
+  };
 
   const notify = (title: string, body: string) => {
     ipcRenderer.invoke("notify", title, body);
@@ -119,9 +146,19 @@ function Home() {
     }
   };
 
+  const getIncompleteTasks = () => {
+    let count = 0;
+    todos.forEach((todo) => {
+      if (!todo.completed && todo.assigned_to == store.get("user")) {
+        count++;
+      }
+    });
+    return count;
+  };
+
   const whichPage = () => {
     if (todosClicked) {
-      return <TodoScreen />;
+      return <TodoScreen todos={todos} loading={todosLoading} />;
     }
     if (groceriesClicked) {
       return <GroceriesScreen />;
@@ -143,13 +180,20 @@ function Home() {
     return (
       <React.Fragment>
         <div className="font-golos flex flex-col relative">
-          <div className="flex w-full gap-10 text-gray-500 py-5 text-xl">
+          <div className="flex w-full bg-white z-10 fixed gap-10 text-gray-500 pt-5 text-xl">
             <div className="absolute border-gray-100 border w-full top-[4.25rem]" />
             <div
               onClick={() => handleClicked(0)}
               className="flex flex-col hover:cursor-pointer pl-5"
             >
-              <div>Todo</div>
+              <div className="flex items-center gap-2">
+                <div>Todo</div>
+                {getIncompleteTasks() > 0 ? (
+                  <div className="bg-gray-200 rounded-full text-xs flex items-center justify-center h-5 w-5">
+                    {getIncompleteTasks()}
+                  </div>
+                ) : null}
+              </div>
               {todosClicked ? (
                 <div className="w-full border-[1px] border-purpleAccent z-10 mt-5" />
               ) : (
@@ -182,7 +226,10 @@ function Home() {
             </div>
           </div>
 
+<div className="mt-[5.5rem]">
+
           {whichPage()}
+</div>
         </div>
       </React.Fragment>
     );

@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { BsArrowReturnLeft, BsCommand, BsEscape } from "react-icons/bs";
 import Sheet from "react-modal-sheet";
 import { MoonLoader } from "react-spinners";
 import supabase from "../../api/supabase_client";
 import TodoItem from "../TodoItem";
 
-export default function TodoScreen() {
+type TodoScreenProps = {
+  todos: any[];
+  loading: boolean;
+};
+
+export default function TodoScreen(props: TodoScreenProps) {
   const [todoLoading, setTodoLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [todos, setTodos] = useState<any[]>([]);
-  const [todoIndex, setTodoIndex] = useState(null);
+  // const [todos, setTodos] = useState<any[]>([]);
+  const [todoIndex, setTodoIndex] = useState(0);
   const [calendarShown, setCalendarShown] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -17,7 +22,7 @@ export default function TodoScreen() {
   const [dueDateMonth, setDueDateMonth] = useState("");
   const [dueDateDay, setDueDateDay] = useState("");
   const [dueDateYear, setDueDateYear] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignedTo, setAssignedTo] = useState("Jay");
 
   const [newNote, setNewNote] = useState(false);
   const [openAssignment, setOpenAssignment] = useState(false);
@@ -25,38 +30,40 @@ export default function TodoScreen() {
   const [searchShown, setSearchShown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [cursorIndex, setCursorIndex] = useState(0);
+
   const Store = require("electron-store");
   const store = new Store();
 
   const currentUser = store.get("user");
 
-  useEffect(() => {
-    loadTodos();
-    console.log("Called");
-  }, []);
+  // function handleKeyDown(e) {
+  //   if (e.keyCode === 75 && cursorIndex > 0) {
+  //     e.preventDefault();
+  //     setCursorIndex(cursorIndex - 1);
 
-  const loadTodos = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("Todos")
-        .select()
-        .order("completed", { ascending: true })
-        .order("due_date", { ascending: true });
+  //     const todoItem = document.getElementById(`todo${cursorIndex}`);
+  //     todoItem.scrollIntoView({ behavior: "smooth", block: "end" });
+  //   }
+  //   if (e.keyCode === 74 && cursorIndex < props.todos.length - 1) {
+  //     e.preventDefault();
+  //     setCursorIndex(cursorIndex + 1);
+  //     const todoItem = document.getElementById(`todo${cursorIndex}`);
+  //     todoItem.scrollIntoView({ behavior: "smooth", block: "start" });
+  //   }
 
-      if (data) {
-        setTodos(data);
-      }
-      if (error) throw error;
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   if (e.keyCode === 74 && cursorIndex === props.todos.length - 1) {
+  //     e.preventDefault();
+  //   }
 
+  //   if (e.key === "Enter" && !isOpen) {
+  //     e.preventDefault();
+
+  //     handleOpenTodo(cursorIndex);
+
+  //     e.stopPropagation();
+  //   }
+  // }
 
   const formatDate = (date: string) => {
     const dateArray = date.split("-");
@@ -86,12 +93,31 @@ export default function TodoScreen() {
     setIsOpen(true);
     setTodoIndex(index);
 
-    setTitle(todos[index]?.title);
-    setDescription(todos[index]?.description);
-    setDueDateDay(formatDate(todos[index]?.due_date).split(" ")[0]);
-    setDueDateMonth(formatDate(todos[index]?.due_date).split(" ")[1]);
-    setDueDateYear(formatDate(todos[index]?.due_date).split(" ")[2]);
-    setAssignedTo(todos[index]?.assigned_to);
+    setTitle(props.todos[index]?.title);
+    setDescription(props.todos[index]?.description);
+    setDueDateDay(formatDate(props.todos[index]?.due_date).split(" ")[0]);
+    setDueDateMonth(formatDate(props.todos[index]?.due_date).split(" ")[1]);
+    setDueDateYear(formatDate(props.todos[index]?.due_date).split(" ")[2]);
+    setAssignedTo(props.todos[index]?.assigned_to);
+
+    // add a new keyboard listener that listnes for the escape key that doestn use handleKeyDown
+    // document.addEventListener("keydown", function (e) {
+    //   console.log(e.key);
+    //   if (e.key === "Escape") {
+    //     e.preventDefault();
+    //     handleCloseModal();
+    //   }
+    //   // if key is meta plus enter
+    //   if (e.key === "t" && e.metaKey) {
+    //     if (newNote) {
+    //       e.preventDefault();
+    //       handleNewNote();
+    //     } else {
+    //       e.preventDefault();
+    //       editTask();
+    //     }
+    //   }
+    // });
   };
 
   const handleCloseModal = () => {
@@ -102,6 +128,13 @@ export default function TodoScreen() {
     setAssignedTo("");
     setDescription("");
     setTitle("");
+
+    // give focus to input with id keyboard
+    // const input = document.getElementById("keyboardFocus");
+    // input.focus();
+
+    // const todoItem = document.getElementById(`todo${cursorIndex}`);
+    // todoItem.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const editTask = async () => {
@@ -115,7 +148,7 @@ export default function TodoScreen() {
           due_date: `${dueDateYear}-${dueDateMonth}-${dueDateDay}`,
           assigned_to: assignedTo,
         })
-        .eq("id", todos[todoIndex]?.id);
+        .eq("id", props.todos[todoIndex]?.id);
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
@@ -132,8 +165,8 @@ export default function TodoScreen() {
       // setLoading(true);
       const { data, error } = await supabase
         .from("Todos")
-        .update({ completed: todos[index].completed ? false : true })
-        .eq("id", todos[index]?.id);
+        .update({ completed: props.todos[index].completed ? false : true })
+        .eq("id", props.todos[index]?.id);
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
@@ -207,19 +240,7 @@ export default function TodoScreen() {
     }
   };
 
-  const getIncompleteTasks = () => {
-    // check if the task is incomplete and assigned_to is current user
-    // return the count
-    let count = 0;
-    todos.forEach((todo) => {
-      if (!todo.completed && todo.assigned_to == currentUser) {
-        count++;
-      }
-    });
-    return count;
-  };
-
-  if (loading) {
+  if (props.loading) {
     return (
       <React.Fragment>
         <div className="pb-32 min-h-screen flex items-center justify-center">
@@ -239,12 +260,12 @@ export default function TodoScreen() {
             <Sheet.Content>
               <form className="p-5 flex flex-col text-greyText">
                 <input
-                  defaultValue={newNote ? "" : todos[todoIndex]?.title}
+                  defaultValue={newNote ? "" : props.todos[todoIndex]?.title}
                   autoFocus
                   type="text"
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Task name here..."
-                  className="mb-3 focus:border-none focus:outline-none"
+                  className="mb-3 focus:border-none outline-none border-none focus:outline-none"
                 />
 
                 <textarea
@@ -252,8 +273,10 @@ export default function TodoScreen() {
                   id=""
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Description"
-                  className="h-24 resize-none focus:border-none focus:outline-none"
-                  defaultValue={newNote ? "" : todos[todoIndex]?.description}
+                  className="h-24 resize-none focus:border-none outline-none border-none focus:outline-none"
+                  defaultValue={
+                    newNote ? "" : props.todos[todoIndex]?.description
+                  }
                 ></textarea>
                 <div className="flex justify-between mt-4">
                   <div className="flex items-center gap-3">
@@ -275,11 +298,13 @@ export default function TodoScreen() {
                               defaultValue={
                                 newNote
                                   ? dueDateDay
-                                  : todos[todoIndex]?.due_date.split("-")[2]
+                                  : props.todos[todoIndex]?.due_date.split(
+                                      "-"
+                                    )[2]
                               }
                               onChange={(e) => setDueDateDay(e.target.value)}
-                              size=""
-                              className="w-5 focus:border-none focus:outline-none"
+                              size={null}
+                              className="w-5 outline-none focus:border-none border-none focus:outline-none"
                               maxLength={2}
                             />
                             <div className="px-2">/</div>
@@ -288,10 +313,12 @@ export default function TodoScreen() {
                               defaultValue={
                                 newNote
                                   ? dueDateMonth
-                                  : todos[todoIndex]?.due_date.split("-")[1]
+                                  : props.todos[todoIndex]?.due_date.split(
+                                      "-"
+                                    )[1]
                               }
                               onChange={(e) => setDueDateMonth(e.target.value)}
-                              size=""
+                              size={null}
                               className="w-5 focus:border-none focus:outline-none"
                               maxLength={2}
                             />
@@ -301,10 +328,12 @@ export default function TodoScreen() {
                               defaultValue={
                                 newNote
                                   ? dueDateYear
-                                  : todos[todoIndex]?.due_date.split("-")[0]
+                                  : props.todos[todoIndex]?.due_date.split(
+                                      "-"
+                                    )[0]
                               }
                               onChange={(e) => setDueDateYear(e.target.value)}
-                              size=""
+                              size={null}
                               className="w-10 focus:border-none focus:outline-none"
                               maxLength={4}
                             />
@@ -362,7 +391,12 @@ export default function TodoScreen() {
                       onClick={() => handleCloseModal()}
                       className="border py-1.5 px-6 rounded-lg hover:cursor-pointer shadow-sm"
                     >
-                      Cancel
+                      <div className="flex items-center">
+                        <div> Cancel</div>
+
+                        {/* <div className="mx-2 border"></div>
+                        <BsEscape size={14} /> */}
+                      </div>
                     </div>
                     {todoLoading ? (
                       <div className="bg-purpleAccent text-white py-2.5 px-10 rounded-lg hover:cursor-pointer shadow-sm">
@@ -371,9 +405,14 @@ export default function TodoScreen() {
                     ) : (
                       <div
                         onClick={() => (newNote ? handleNewNote() : editTask())}
-                        className="bg-purpleAccent text-white py-1.5 px-6 rounded-lg hover:cursor-pointer shadow-sm"
+                        className="bg-purpleAccent text-white py-1.5 px-6 rounded-lg flex items-center hover:cursor-pointer shadow-sm"
                       >
-                        {newNote ? "Create Task" : "Edit Task"}
+                        <div>{newNote ? "Create Task" : "Edit Task"}</div>
+                        {/* <div className="mx-2 border"></div>
+                        <div className="flex gap-1 items-center">
+                          <BsCommand size={14} />
+                          <BsArrowReturnLeft size={14} />
+                        </div> */}
                       </div>
                     )}
                   </div>
@@ -396,7 +435,13 @@ export default function TodoScreen() {
             <div className="border border-gray-100 my-4 mx-7" />
           </>
         ) : null}
-        {todos.filter((todo) => {
+        <input
+          // onKeyDown={handleKeyDown}
+          className="opacity-0 h-0 w-0 absolute"
+          autoFocus
+          id="keyboardFocus"
+        />
+        {props.todos.filter((todo) => {
           if (searchTerm == "") {
             return todo;
           } else if (
@@ -410,7 +455,7 @@ export default function TodoScreen() {
             No tasks found
           </div>
         ) : (
-          todos
+          props.todos
             .filter((todo) => {
               if (searchTerm == "") {
                 return todo;
@@ -425,12 +470,12 @@ export default function TodoScreen() {
             })
             .map(function (item, index) {
               return (
-                <div key={index} className="relative">
+                <div id={"todo" + index} key={index} className="relative">
                   <div
                     onClick={() => setCompleted(index)}
-                    className="h-6 hover:cursor-pointer top-7 left-7 absolute w-6 border rounded-full p-1"
+                    className="h-6 hover:cursor-pointer top-9 left-7 absolute w-6 border rounded-full p-1"
                   >
-                    {todos[index].completed ? (
+                    {props.todos[index].completed ? (
                       <img
                         src="../images/checkIcon.png"
                         alt=""
@@ -449,6 +494,7 @@ export default function TodoScreen() {
                       assignedTo={item.assigned_to}
                       dueDate={formatDate(item.due_date)}
                       overdueOrClose={checkIfOverdueOrClose(item.due_date)}
+                      active={false}
                     />
                     <div className="border border-gray-100 my-4 mx-6" />
                   </div>
@@ -456,14 +502,15 @@ export default function TodoScreen() {
               );
             })
         )}
-        {getIncompleteTasks() == 0 ? null : (
-          <div className="absolute top-3.5 right-20 bg-gray-100 rounded-md p-2 hover:cursor-pointer">
-            <div>Outstanding: {getIncompleteTasks()}</div>
+        {/* <div className="fixed py-1 px-3 bottom-0 w-full bg-gray-400 backdrop-filter backdrop-blur-lg bg-opacity-20 border-t border-t-purple-300 text-greyText">
+          <div className="flex justify-between">
+            <div>Bottom bar</div>
+            <div>Bottom bar</div>
           </div>
-        )}
+        </div> */}
         <div
           onClick={() => handleNewNoteOpen()}
-          className="absolute top-5 right-5 hover:cursor-pointer"
+          className="fixed z-20 top-5 right-5 hover:cursor-pointer"
         >
           <img src="/images/newNoteIcon.png" alt="" className="h-7 w-7" />
         </div>
@@ -476,7 +523,6 @@ export default function TodoScreen() {
           </div>
 
           <div
-            onClick={() => showNotification()}
             className="hover:cursor-pointer"
           >
             <img src="/images/filterIcon.png" alt="" className="h-7 w-7" />
