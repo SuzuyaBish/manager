@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "nextron",
     "build": "nextron build --mac --win --publish never",
-    "deploy": "nextron build --mac --win --publish always",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": {

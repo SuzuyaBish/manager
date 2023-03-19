@@ -13,6 +13,13 @@ import { createWindow } from "./helpers";
 const isProd: boolean = process.env.NODE_ENV === "production";
 const { autoUpdater } = require("electron-updater");
 
+autoUpdater.setFeedURL({
+  provider: "github",
+  owner: "SuzuyaBish",
+  repo: "manager",
+  token: "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",
+});
+
 export const Notify = (title: string, body: string) => {
   new Notification({
     title: title,
