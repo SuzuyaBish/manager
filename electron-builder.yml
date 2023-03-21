@@ -1,5 +1,5 @@
 appId: com.example.nextron
-productName: My Nextron App
+productName: Manager
 copyright: Copyright © 2018 Yoshihide Shiono
 directories:
   output: dist
@@ -9,4 +9,8 @@ files:
     filter:
       - package.json
       - app
-publish: null
+publish: 
+  provider: github
+  owner: SuzuyaBish
+  repo: manager
+  token: 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

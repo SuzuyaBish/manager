@@ -134,14 +134,21 @@ export default function GroceriesScreen() {
           {list.map((item, index) => {
             return (
               <div key={index} className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  name=""
-                  id=""
-                  checked={item.completed}
-                  onChange={() => handleSetComplete(index)}
-                  className="h-6 w-6 hover:cursor-pointer rounded-full border-gray-400 border-2 checked:bg-purpleAccent checked:border-transparent focus:outline-none"
-                />
+
+                  <div
+                    onClick={() => handleSetComplete(index)}
+                    className="h-5 hover:cursor-pointer top-9 left-7 w-5 border rounded-full p-1"
+                  >
+                    {item.completed ? (
+                      <img
+                        src="../images/checkIcon.png"
+                        alt=""
+                        className="h-full w-full"
+                      />
+                    ) : (
+                      <div className="h-full w-full" />
+                    )}
+                  </div>
                 <div className={`${item.completed ? "line-through" : ""}`}>
                   {item.title}
                 </div>
@@ -152,7 +159,7 @@ export default function GroceriesScreen() {
         <div className="mb-5"></div>
         <div
           onClick={() => handleInsertGroceries()}
-          className="absolute z-20 top-5 right-5 hover:cursor-pointer"
+          className="fixed z-20 top-5 right-5 hover:cursor-pointer"
         >
           <img src="/images/uploadIcon.png" alt="" className="h-7 w-7" />
         </div>

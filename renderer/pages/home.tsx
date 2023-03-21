@@ -20,6 +20,10 @@ function Home() {
   const store = new Store();
 
   useEffect(() => {
+    store.set("user", "Jorene")
+
+    console.log(store.get("user"));
+
     ipcRenderer.on("update_available", () => {
       ipcRenderer.removeAllListeners("update_available");
       alert("A new update is available. Downloading now...");
@@ -32,15 +36,6 @@ function Home() {
     });
 
     loadTodos();
-    if (store.get("user") == undefined || null) {
-      getUser();
-
-      if (!userStatus) {
-        store.set("user", "Jorene");
-      } else {
-        store.set("user", "Jay");
-      }
-    }
 
     if (store.get("newData") == undefined || null) {
       store.set("newData", false);
@@ -74,23 +69,9 @@ function Home() {
 
             store.set("newData", true);
           }
-          // if (
-          //   payload.new["assigned_to"] == store.get("user") &&
-          //   payload.eventType == "UPDATE"
-          // ) {
-          //   notify(
-          //     "Task update",
-          //     "A task assigned to you was " +
-          //       payload.eventType.toLowerCase() +
-          //       "d."
-          //   );
-
-          //   store.set("newData", true);
-          // }
         }
       )
       .subscribe();
-    // store.delete("user")
   }, []);
 
   const loadTodos = async () => {
